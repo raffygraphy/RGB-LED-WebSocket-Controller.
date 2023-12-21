@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ESP32 WebSocket Server</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        .topnav {
+            background-color: #3CB043;
+            padding: 15px;
+            text-align: center;
+            color: white;
+        }
+
+        .content {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #07156d;
+        }
+
+        .card {
+            padding: 20px;
+        }
+
+        .button {
+            padding: 15px 50px;
+            font-size: 1rem;
+            text-align: center;
+            color: #fff;
+            background-color: #47443D;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .button:active {
+            background-color: #3CB043;
+        }
+
+        .state {
+            font-size: 1rem;
+            color: #120707;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topnav">
+        <h1>ESP32</h1>
+    </div>
+    <div class="content">
+        <div class="card">
+            <h2>LAB-04 WiFi</h2>
+            <button id="button" class="button">Toggle LED</button>
+            <p class="state">LED Color: <span id="state">%s</span></p>
+        </div>
+    </div>
+
+    <script>
+        const gateway = `ws://${window.location.hostname}/ws`;
+        let websocket;
+
+        window.addEventListener('load', () => {
+            initWebSocket();
+            initButton();
+        });
+
+        function initWebSocket() {
+            console.log('Trying to open a WebSocket connection...');
+            websocket = new WebSocket(gateway);
+            websocket.onopen = onOpen;
+            websocket.onclose = onClose;
+            websocket.onmessage = onMessage;
+        }
+
+        function onOpen() {
+            console.log('Connection opened');
+        }
+
+        function onClose() {
+            console.log('Connection closed');
+            setTimeout(initWebSocket, 2000);
+        }
+
+        function onMessage(event) {
+            const state = mapDataToState(event.data);
+            document.getElementById('state').innerHTML = state;
+        }
+
+        function mapDataToState(data) {
+            switch (data) {
+                case '1':
+                    return 'BLUE';
+                case '2':
+                    return 'GREEN';
+                case '3':
+                    return 'TURQUOISE';
+                case '4':
+                    return 'RED';
+                case '5':
+                    return 'PURPLE';
+                case '6':
+                    return 'RED & GREEN';
+                case '7':
+                    return 'RGB';
+                default:
+                    return 'OFF';
+            }
+        }
+
+        function initButton() {
+            document.getElementById('button').addEventListener('click', toggle);
+        }
+
+        function toggle() {
+            websocket.send('toggle');
+        }
+    </script>
+</body>
+
+</html>
